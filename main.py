@@ -12,7 +12,7 @@ bot = telebot.TeleBot(API_TOKEN)
 def create_kb():
     kb = InlineKeyboardMarkup(row_width=1)
     mireaWebApp = WebAppInfo('https://www.mirea.ru/')
-    my_site_webapp = WebAppInfo('https://danchicic.github.io/site_for_tz/')
+    my_site_webapp = WebAppInfo('https://danchicic.github.io/')
 
     button = InlineKeyboardButton(text='Мирэа', web_app=mireaWebApp)
     button1 = InlineKeyboardButton(text='Интернет магазин', web_app=my_site_webapp)
