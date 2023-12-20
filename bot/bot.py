@@ -1,5 +1,3 @@
-# main file of bot
-
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher
@@ -7,9 +5,8 @@ from aiogram import Bot, Dispatcher
 import handlers
 from config import config
 
+"""main file of bot"""
 
-
-# CONFIG!!!
 token = config.tg_bot.token
 
 # logger initializing
@@ -33,6 +30,7 @@ async def main():
                    )
 
     dp: Dispatcher = Dispatcher()
+    # including routers
     dp.include_router(handlers.main_router)
 
     await bot.delete_webhook(drop_pending_updates=True)
