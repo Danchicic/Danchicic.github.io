@@ -168,7 +168,7 @@ class User(DataBaseCRUD):
 
     def __init__(self):
         # inheritance of properties and methods of the parent class - DataBaseCRUD
-        super().__init__('../db/Users.db')
+        super().__init__('Users.db')
 
     # updating database with fresh data
     def write_user(self, row: UserRow):
@@ -197,7 +197,7 @@ class User(DataBaseCRUD):
 
 def create_user():
     """func to create users table"""
-    conn = sqlite3.connect('../db/Users.db')
+    conn = sqlite3.connect('Users.db')
     cursor = conn.cursor()
     conn = conn
     cursor.execute(f"""
@@ -212,5 +212,5 @@ def create_user():
 
 
 if __name__ == '__main__':
-    table = DataBaseCRUD('../db/comics.db')
+    table = DataBaseCRUD('comics.db')
     table.print_rows('biff_to_the_future_6')
