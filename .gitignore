@@ -1,3 +1,4 @@
 .gitignore
 venv/
 .idea/
+.DS_store
