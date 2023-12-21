@@ -1,4 +1,8 @@
 venv/
 .idea/
+<<<<<<< HEAD
 .env
 .DS_Store
+=======
+.DS_store
+>>>>>>> 784eb23 (last comitting)

@@ -1,4 +1,7 @@
 import os
+
+"""if want use this module, use => pip3 install pdf2image"""
+
 from pdf2image import convert_from_path
 
 """file for standardizing comics

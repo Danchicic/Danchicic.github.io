@@ -1,7 +1,10 @@
+import shutil
 import sqlite3
 import datetime
 import os
 from os.path import isfile, join, isdir
+
+import requests
 
 
 class ComicRow:
@@ -31,7 +34,7 @@ class DataBaseCRUD:
 
     def __init__(self, db_path: str):
         """initializing connection for db"""
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(db_path, check_same_thread=False)
         self.conn = conn
         self.cursor = conn.cursor()
 
@@ -43,8 +46,11 @@ class DataBaseCRUD:
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         return self.cursor
 
-    def create_new_comic(self, name: str):
-        """creating new comics table"""
+    def create_new_comic(self, name: str, mode: int = 0):
+
+        """creating new comics table
+        :argument mode created for api
+        """
         self.cursor.execute(
             f"""
             CREATE TABLE IF NOT EXISTS {name} (
@@ -55,19 +61,50 @@ class DataBaseCRUD:
             """
         )
         self.conn.commit()
+        if mode:
+            from pathlib import Path
+            Path(f"../comics_files/{name}").mkdir(parents=True, exist_ok=True)
 
-    def write_data(self, table_name: str, *rows: ComicRow):
+    def write_data(self, table_name: str, *rows: ComicRow, **kwargs):
         """writing row to table_name"""
         for row in rows:
             # checking for a duplicate
             existing = self.cursor.execute(f"SELECT * FROM {table_name}  WHERE picture_id=?", (row.url,)).fetchone()
             if existing is None:
-                # inserting new line to table
-                self.cursor.execute(
-                    f"INSERT INTO {table_name} "
-                    f"VALUES (?, ?, ?)",
-                    (None, row.date, row.url))
+                if kwargs:
+                    # if updating database from api
+                    picture = requests.get(url=row.url, stream=True)
+                    # getting last page of comics
+                    file_name = f'{int(getattr(self, "get_last_page")(table_name)) + 1}.jpg'
+                    # downloading picture and saving
+                    if picture.status_code == 200:
+                        with open(f"../comics_files/{table_name}/{file_name}", 'wb+') as f:
+                            shutil.copyfileobj(picture.raw, f)
+
+                    self.cursor.execute(
+                        f"""INSERT INTO {table_name}
+                        VALUES (?, ?, ?)
+                        """,
+                        (None, row.date, file_name)
+                    )
+                else:
+                    # inserting new line to table
+                    self.cursor.execute(
+                        f"INSERT INTO {table_name} "
+                        f"VALUES (?, ?, ?)",
+                        (None, row.date, row.url))
                 self.conn.commit()
+
+        return True
+
+    def delete_table(self, table_name: str, mode: int = 0):
+        self.cursor.execute(f"""
+        DROP TABLE {table_name}
+        """)
+        self.conn.commit()
+        if mode:
+            import shutil
+            shutil.rmtree(f"../comics_files/{table_name}")
 
     # returning columns names
     def __get_columns_name(self, name: str) -> list[str]:
@@ -100,7 +137,10 @@ class DataBaseCRUD:
             SELECT MAX(id) FROM {table_name};
             """
         )
-        return self.cursor.fetchall()[0][0]
+        last_page = self.cursor.fetchall()[0][0]
+        if last_page is not None:
+            return last_page
+        return 0
 
     def print_rows(self, name):
         """
